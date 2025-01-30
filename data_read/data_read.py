@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 
 ARDUINO_PORT = "/dev/cu.usbmodem14101"
 BAUD_RATE = 9600
+file_name = "data.csv"
 
 
 def setup_serial(arduino_port, baud_rate):
@@ -113,6 +114,41 @@ def save_data_duration(ser, arduino_port, baud_rate, duration=3):
     return measurements
 
 
+def save_data_duration_csv(ser, arduino_port, baud_rate, duration=3):
+    measurements = []
+    try:
+        # Open the serial connection
+        ser = serial.Serial(arduino_port, baud_rate, timeout=1)
+        print(f"Connected to Arduino on {arduino_port}")
+
+        time.sleep(2)  # Allow time for Arduino to reset
+        start_time = time.time()
+        # Continuously read data
+        while time.time() - start_time < duration:
+            if ser.in_waiting > 0:  # Check if there is data in the buffer
+                line = ser.readline().decode('utf-8').strip()  # Read and decode the data
+                measurements.append(line)
+        ser.close()
+        # append data to csv file
+        measurements_to_csv(measurements)
+    except serial.SerialException:
+        print("Failed to connect to Arduino. Check the port and try again.")
+    except KeyboardInterrupt:
+        print("Exiting...")
+    finally:
+        if 'ser' in locals() and ser.is_open:
+            ser.close()
+            print("Serial connection closed.")
+    return measurements
+
+
+def measurements_to_csv(measurements):
+    with open(file_name, 'a') as file:
+        file.write(",".join(map(str, measurements)))
+        file.write("\n")
+    print(f"Data saved to {file_name}")
+
+
 def test_run():
     # setup
     setup_information = setup_serial(ARDUINO_PORT, BAUD_RATE)
@@ -121,10 +157,7 @@ def test_run():
                                           setup_information[1], setup_information[2])
     else:
         print("Failed to read setup information.")  # 3 sec run - read data
-    # print data
-    # print(measurements)
-    print(measurements.__len__())
-    # plot data
+    print(len(measurements))
     plot_data(measurements)
     exit()
 
@@ -145,7 +178,7 @@ def plot_data(measurements):
              label=f"Sensor Data; max: {max(measurements)}; min: {min(measurements)}")
 
     # Set axis limits
-    plt.ylim(0, 20)  # Y-axis fixed between 0 and 20
+    # plt.ylim(0, 20)  # Y-axis fixed between 0 and 20
     plt.xlim(0, len(measurements))  # X-axis from 0 to the length of the data
 
     # Labels and title
@@ -158,5 +191,17 @@ def plot_data(measurements):
     plt.show()
 
 
+def record_csv():
+    setup_information = setup_serial(ARDUINO_PORT, BAUD_RATE)
+    if setup_information:
+        for i in range(10):
+            measurements = save_data_duration_csv(setup_information[0],
+                                                  setup_information[1], setup_information[2])
+            print(f"Run {i + 1}: {len(measurements)} measurements recorded.")
+    else:
+        print("Failed to read setup information.")
+
+
 if __name__ == "__main__":
-    test_run()
+    # test_run()
+    record_csv()
