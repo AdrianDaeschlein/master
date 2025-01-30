@@ -2,7 +2,7 @@ import serial
 import time
 import matplotlib.pyplot as plt
 
-ARDUINO_PORT = "/dev/cu.usbmodem14101"
+ARDUINO_PORT = "/dev/cu.usbmodem101"
 BAUD_RATE = 9600
 file_name = "data.csv"
 
@@ -42,6 +42,29 @@ def read_data(ser, arduino_port, baud_rate):
             if ser.in_waiting > 0:  # Check if there is data in the buffer
                 line = ser.readline().decode('utf-8').strip()  # Read and decode the data
                 print(f"Data from Arduino: {line}")
+    except serial.SerialException:
+        print("Failed to connect to Arduino. Check the port and try again.")
+    except KeyboardInterrupt:
+        print("Exiting...")
+    finally:
+        if 'ser' in locals() and ser.is_open:
+            ser.close()
+            print("Serial connection closed.")
+
+
+def read_out_data(ser, arduino_port, baud_rate):
+    try:
+        # Open the serial connection
+        ser = serial.Serial(arduino_port, baud_rate, timeout=1)
+        print(f"Connected to Arduino on {arduino_port}")
+
+        time.sleep(2)  # Allow time for Arduino to reset
+
+        # Continuously read data
+        while True:
+            if ser.in_waiting > 0:  # Check if there is data in the buffer
+                line = ser.readline().decode('utf-8').strip()  # Read and decode the data
+                return line
     except serial.SerialException:
         print("Failed to connect to Arduino. Check the port and try again.")
     except KeyboardInterrupt:
@@ -191,17 +214,20 @@ def plot_data(measurements):
     plt.show()
 
 
-def record_csv():
+def record_csv(n=10):
     setup_information = setup_serial(ARDUINO_PORT, BAUD_RATE)
     if setup_information:
-        for i in range(10):
+        for i in range(n):
+            print("")
+            print(f"Run {i + 1} of {n}")
             measurements = save_data_duration_csv(setup_information[0],
                                                   setup_information[1], setup_information[2])
             print(f"Run {i + 1}: {len(measurements)} measurements recorded.")
+
     else:
         print("Failed to read setup information.")
 
 
 if __name__ == "__main__":
     # test_run()
-    record_csv()
+    record_csv(1)
