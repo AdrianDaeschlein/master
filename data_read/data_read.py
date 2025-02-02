@@ -1,8 +1,10 @@
 import serial
 import time
 import matplotlib.pyplot as plt
+import sys
+import select
 
-ARDUINO_PORT = "/dev/cu.usbmodem101"
+ARDUINO_PORT = "/dev/cu.usbmodemF0F5BD4F35482"
 BAUD_RATE = 9600
 file_name = "data.csv"
 
@@ -137,7 +139,21 @@ def save_data_duration(ser, arduino_port, baud_rate, duration=3):
     return measurements
 
 
-def save_data_duration_csv(ser, arduino_port, baud_rate, duration=3):
+def save_data_duration_csv(ser, arduino_port, baud_rate, LED, duration=3):
+    """
+    Reads sensor data from Arduino and saves it to CSV.
+    Optionally sends 'R' and 'S' to turn LEDs on/off if LED is True.
+
+    Args:
+        ser (serial.Serial): The serial connection object.
+        arduino_port (str): Arduino's serial port.
+        baud_rate (int): Baud rate.
+        duration (int): Duration to record data (default: 3 seconds).
+        LED (bool): Whether to send LED control commands (default: True).
+
+    Returns:
+        list: Collected measurements.
+    """
     measurements = []
     try:
         # Open the serial connection
@@ -145,15 +161,30 @@ def save_data_duration_csv(ser, arduino_port, baud_rate, duration=3):
         print(f"Connected to Arduino on {arduino_port}")
 
         time.sleep(2)  # Allow time for Arduino to reset
+
+        # **Send 'R' to start recording if LED is enabled**
+        if LED == 1:
+            ser.write(b'R')
+            time.sleep(0.1)  # Small delay to ensure command is sent
+
         start_time = time.time()
-        # Continuously read data
+
+        # Continuously read data for the given duration
         while time.time() - start_time < duration:
             if ser.in_waiting > 0:  # Check if there is data in the buffer
                 line = ser.readline().decode('utf-8').strip()  # Read and decode the data
                 measurements.append(line)
+
+        # **Send 'S' to stop recording if LED is enabled**
+        if LED == 1:
+            ser.write(b'S')
+            time.sleep(0.1)  # Small delay to ensure command is sent
+
         ser.close()
-        # append data to csv file
+        
+        # Save the collected data to CSV
         measurements_to_csv(measurements)
+
     except serial.SerialException:
         print("Failed to connect to Arduino. Check the port and try again.")
     except KeyboardInterrupt:
@@ -162,6 +193,68 @@ def save_data_duration_csv(ser, arduino_port, baud_rate, duration=3):
         if 'ser' in locals() and ser.is_open:
             ser.close()
             print("Serial connection closed.")
+
+    return measurements
+
+def save_data_n_samples(ser, arduino_port, baud_rate, LED, n_samples=400):
+    """
+    Reads a fixed number of samples from the Arduino and saves them to CSV.
+    Optionally sends 'R' and 'S' to turn LEDs on/off if LED is True.
+
+    Args:
+        ser (serial.Serial): The serial connection object.
+        arduino_port (str): Arduino's serial port.
+        baud_rate (int): Baud rate.
+        n_samples (int): Number of samples to record.
+        LED (bool): Whether to send LED control commands (default: True).
+
+    Returns:
+        list: Collected measurements.
+    """
+    measurements = []
+    try:
+        # Open the serial connection
+        ser = serial.Serial(arduino_port, baud_rate, timeout=1)
+        print(f"Connected to Arduino on {arduino_port}")
+
+        time.sleep(2)  # Allow time for Arduino to reset
+
+        # **Send 'R' to start recording if LED is enabled**
+        if LED:
+            ser.write(b'R')
+            time.sleep(0.1)  # Small delay to ensure command is sent
+
+        start_time = time.time()
+
+        # Read exactly `n_samples` data points
+        while len(measurements) < n_samples:
+            if ser.in_waiting > 0:  # Check if there is data in the buffer
+                line = ser.readline().decode('utf-8').strip()  # Read and decode the data
+                measurements.append(line)
+
+        total_time = time.time() - start_time  # Calculate total recording time
+
+        # **Send 'S' to stop recording if LED is enabled**
+        if LED:
+            ser.write(b'S')
+            time.sleep(0.1)  # Small delay to ensure command is sent
+
+        ser.close()
+        
+        # Save the collected data to CSV
+        measurements_to_csv(measurements)
+
+        print(f"Recorded {total_time:.2f} seconds.")
+
+    except serial.SerialException:
+        print("Failed to connect to Arduino. Check the port and try again.")
+    except KeyboardInterrupt:
+        print("Exiting...")
+    finally:
+        if 'ser' in locals() and ser.is_open:
+            ser.close()
+            print("Serial connection closed.")
+
     return measurements
 
 
@@ -214,20 +307,31 @@ def plot_data(measurements):
     plt.show()
 
 
-def record_csv(n=10):
+def record_csv(LED, n=10, time_1_or_samples_0=1, samples=400, duration=3):
+    
     setup_information = setup_serial(ARDUINO_PORT, BAUD_RATE)
     if setup_information:
+        ser = setup_information[0]
+
         for i in range(n):
             print("")
             print(f"Run {i + 1} of {n}")
-            measurements = save_data_duration_csv(setup_information[0],
-                                                  setup_information[1], setup_information[2])
+
+            if time_1_or_samples_0 == 1:
+                measurements = save_data_duration_csv(ser, setup_information[1], setup_information[2], LED, duration)
+            elif time_1_or_samples_0 == 0:
+                measurements = save_data_n_samples(ser, setup_information[1], setup_information[2], LED, samples)
+            else:
+                print("Invalid choice. Exiting TEST...")
+                sys.exit(1)
+
             print(f"Run {i + 1}: {len(measurements)} measurements recorded.")
+
+        ser.close()
 
     else:
         print("Failed to read setup information.")
 
-
 if __name__ == "__main__":
     # test_run()
-    record_csv(1)
+    record_csv(LED=1, n=1)
