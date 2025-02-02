@@ -30,6 +30,15 @@ def setup_serial(arduino_port, baud_rate):
 
 
 def read_data(ser, arduino_port, baud_rate):
+    """
+    Sets up the connection to the Arduino with two vars:
+
+    Args:
+        ser (serial.Serial): The serial connection object.
+        arduino_port (string): The port the Arduino is connected to
+        baud_rate (int):  How much data is sent per second - 9600 default
+            The higher the baud rate, the errors can occur
+    """
     try:
         # Open the serial connection
         ser = serial.Serial(arduino_port, baud_rate, timeout=1)
@@ -53,6 +62,17 @@ def read_data(ser, arduino_port, baud_rate):
 
 
 def read_out_data(ser, arduino_port, baud_rate):
+    """
+    Sets up the connection to the Arduino with two vars:
+
+    Args:
+        arduino_port (string): The port the Arduino is connected to
+        baud_rate (int):  How much data is sent per second - 9600 default
+            The higher the baud rate, the errors can occur
+
+    Returns:
+        string: The data from the Arduino
+    """
     try:
         # Open the serial connection
         ser = serial.Serial(arduino_port, baud_rate, timeout=1)
@@ -112,6 +132,20 @@ def print_data_duration(ser, arduino_port, baud_rate, duration=3):
 
 
 def save_data_duration(ser, arduino_port, baud_rate, duration=3):
+    """
+    Reads and returns data from an Arduino over a serial connection for a specified duration.
+    Args:
+        ser (serial.Serial): The serial connection object.
+        arduino_port (str): The port to which the Arduino is connected (e.g., 'COM3' or '/dev/ttyUSB0').
+        baud_rate (int): The baud rate for the serial communication.
+        duration (int, optional): The duration in seconds for which to read data from the Arduino. Defaults to 3 seconds.
+    Raises:
+        serial.SerialException: If the connection to the Arduino fails.
+        KeyboardInterrupt: If the user interrupts the execution (e.g., by pressing Ctrl+C).
+
+    Returns:
+        list of str: The data read during the specified duration.
+    """
     measurements = []
     try:
         # Open the serial connection
@@ -138,6 +172,20 @@ def save_data_duration(ser, arduino_port, baud_rate, duration=3):
 
 
 def save_data_duration_csv(ser, arduino_port, baud_rate, duration=3):
+    """
+    Reads and saved data to the globally defined data sheet.
+    Args:
+        ser (serial.Serial): The serial connection object.
+        arduino_port (str): The port to which the Arduino is connected (e.g., 'COM3' or '/dev/ttyUSB0').
+        baud_rate (int): The baud rate for the serial communication.
+        duration (int, optional): The duration in seconds for which to read data from the Arduino. Defaults to 3 seconds.
+    Raises:
+        serial.SerialException: If the connection to the Arduino fails.
+        KeyboardInterrupt: If the user interrupts the execution (e.g., by pressing Ctrl+C).
+
+    Returns:
+        list of str: The data read during the specified duration.
+    """
     measurements = []
     try:
         # Open the serial connection
@@ -166,6 +214,12 @@ def save_data_duration_csv(ser, arduino_port, baud_rate, duration=3):
 
 
 def measurements_to_csv(measurements):
+    """
+    Appends a list of measurements to a CSV file.
+
+    Args:
+        measurements (list of str): List of measurements to append to the CSV file.
+    """
     with open(file_name, 'a') as file:
         file.write(",".join(map(str, measurements)))
         file.write("\n")
