@@ -9,7 +9,7 @@ def main():
     LED = int(input("Do you want to turn on the LED? (1/0): "))
 
     time_1_or_samples_0 = int(input(
-        "Do you want to record for a fixed time(3s) (1) or fixed number of samples(400)(0)?: "))
+        "Do you want to record for a fixed time(3s) (1) or fixed number of samples(500)(0)?: "))
 
     print("what do you want to do?")
     print("1. Save data - manual")
@@ -26,7 +26,7 @@ def main():
             print("RUN " + str(i + 1))
             dr.file_name = m_name + str(i + 1) + ".csv"
             dr.record_csv(
-                LED, n=1, time_1_or_samples_0=time_1_or_samples_0, samples=400, duration=3)
+                LED, n=1, time_1_or_samples_0=time_1_or_samples_0, samples=500, duration=3)
 
             input("Recording number " + str(i + 1) +
                   " done. Press enter to continue.")
@@ -60,7 +60,7 @@ def main():
 
         dr.file_name = m_name + ".csv"
         dr.record_csv(
-            LED, n=n, time_1_or_samples_0=time_1_or_samples_0, samples=400, duration=3)
+            LED, n=n, time_1_or_samples_0=time_1_or_samples_0, samples=500, duration=3)
 
         # Move the merged file to the 'data_collection' folder
         script_dir = os.path.dirname(os.path.abspath(__file__))

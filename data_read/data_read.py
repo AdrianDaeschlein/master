@@ -4,7 +4,8 @@ import matplotlib.pyplot as plt
 import sys
 import select
 
-ARDUINO_PORT = "/dev/cu.usbmodemF0F5BD4F35482"
+# ARDUINO_PORT = "/dev/cu.usbmodemF0F5BD4F35482"
+ARDUINO_PORT = "/dev/cu.usbmodem14101"
 BAUD_RATE = 9600
 file_name = "data.csv"
 
@@ -231,7 +232,7 @@ def save_data_duration_csv(ser, arduino_port, baud_rate, LED, duration=3):
     return measurements
 
 
-def save_data_n_samples(ser, arduino_port, baud_rate, LED, n_samples=400):
+def save_data_n_samples(ser, arduino_port, baud_rate, LED, n_samples=500):
     """
     Reads a fixed number of samples from the Arduino and saves them to CSV.
     Optionally sends 'R' and 'S' to turn LEDs on/off if LED is True.
@@ -348,7 +349,7 @@ def plot_data(measurements):
     plt.show()
 
 
-def record_csv(LED, n=10, time_1_or_samples_0=1, samples=400, duration=3):
+def record_csv(LED, n=10, time_1_or_samples_0=1, samples=500, duration=3):
 
     setup_information = setup_serial(ARDUINO_PORT, BAUD_RATE)
     if setup_information:
