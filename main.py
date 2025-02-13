@@ -4,19 +4,38 @@ import time
 
 dr.BAUD_RATE = 115200
 
-
 def main():
+    print("Select the hardware you are using: ")
+    print("1. MPU6050")
+    print("2. geophone")
+    hardware_choice = input("Enter your choice (1 or 2): ")
+
+    if hardware_choice == "1":
+        hardware_folder = "MPU6050"
+    elif hardware_choice == "2":
+        hardware_folder = "geophone"
+    else:
+        print("Invalid hardware selection. Exiting...")
+        return
 
     LED = int(input("Do you want to turn on the LED? (1/0): "))
 
     time_1_or_samples_0 = int(input(
-        "Do you want to record for a fixed time(3s) (1) or fixed number of samples(500)(0)?: "))
+        "Do you want to record for a fixed time (3s) (1) or a fixed number of samples (500) (0)?: "))
 
-    print("what do you want to do?")
+    print("What do you want to do?")
     print("1. Save data - manual")
     print("2. Save data - automatic")
+    choice = input("Enter your choice (1 or 2): ")
 
-    choice = input("Enter your choice: ")
+    # Get the absolute path of this script
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    # Use the hardware-specific folder
+    data_folder = os.path.join(script_dir, hardware_folder)
+
+    # Create the hardware folder if it doesn't exist
+    if not os.path.exists(data_folder):
+        os.makedirs(data_folder)
 
     if choice == "1":
         n = input("How many recordings? ")
@@ -32,23 +51,16 @@ def main():
             input("Recording number " + str(i + 1) +
                   " done. Press enter to continue.")
 
-        # Get the absolute path of this script
-        script_dir = os.path.dirname(os.path.abspath(__file__))
-
-        # Build the path to 'data_collection' within the script's directory
-        data_folder = os.path.join(script_dir, "data_collection")
-
-        # Build the full file path: data_collection/<m_name>.csv
+        # Build the full file path: hardware_folder/<m_name>.csv
         csv_file_path = os.path.join(data_folder, f"{m_name}.csv")
 
         for i in range(int(n)):
-            # Read the data from the individual files as a individual list [x1, x2, x3, ...]
+            # Read the data from the individual files as a list [x1, x2, x3, ...]
             with open(m_name + str(i + 1) + ".csv", "r") as f:
                 data = f.read().split(",")
 
-            # Create or open csv file named m_name + ".csv" in folder data
+            # Append the data to the merged file in the hardware folder
             with open(csv_file_path, "a") as f:
-                # Write the data to the csv file
                 f.write(",".join(data))
 
         # Delete the individual data files
@@ -65,16 +77,12 @@ def main():
         dr.record_csv(
             LED, n=n, time_1_or_samples_0=time_1_or_samples_0, samples=500, duration=3)
 
-        # Move the merged file to the 'data_collection' folder
-        script_dir = os.path.dirname(os.path.abspath(__file__))
-        data_folder = os.path.join(script_dir, "data_collection")
-
+        # Move the merged file to the hardware-specific folder
         csv_file_path = os.path.join(data_folder, f"{m_name}.csv")
         os.rename(m_name + ".csv", csv_file_path)
 
     else:
         print("Invalid choice. Exiting...")
-
 
 if __name__ == "__main__":
     main()
