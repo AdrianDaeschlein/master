@@ -1,5 +1,6 @@
 import data_read.data_read as dr
 import os
+import time
 
 dr.BAUD_RATE = 115200
 
@@ -57,6 +58,8 @@ def main():
     elif choice == "2":
         n = int(input("How many recordings? "))
         m_name = input("Enter the name of the merged file: ")
+
+        time.sleep(5)
 
         dr.file_name = m_name + ".csv"
         dr.record_csv(
