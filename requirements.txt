@@ -26,7 +26,6 @@ pandas==2.2.3
 parso==0.8.4
 pexpect==4.9.0
 pillow==11.1.0
-pip==24.0
 platformdirs==4.3.6
 prompt_toolkit==3.0.50
 psutil==6.1.1
