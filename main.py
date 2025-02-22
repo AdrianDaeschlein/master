@@ -4,6 +4,7 @@ import time
 
 dr.BAUD_RATE = 115200
 
+
 def main():
     print("Select the hardware you are using: ")
     print("1. MPU6050")
@@ -83,6 +84,7 @@ def main():
 
     else:
         print("Invalid choice. Exiting...")
+
 
 if __name__ == "__main__":
     main()
