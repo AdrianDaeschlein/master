@@ -2,7 +2,6 @@ import serial
 import time
 import matplotlib.pyplot as plt
 import sys
-import select
 
 # ARDUINO_PORT = "/dev/cu.usbmodemF0F5BD4F35482"
 ARDUINO_PORT = "/dev/cu.usbmodem14101"
